@@ -85,7 +85,6 @@ public class Main {
                     i++;
                 } else {
                     System.out.println(runs + " read writes done... idling");
-                    timer.cancel();
                 }
             }
         }, 0, intervalSeconds * 1000);
