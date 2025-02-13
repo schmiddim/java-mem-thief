@@ -1,0 +1,45 @@
+name: Build and Push Docker Image
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build_and_test:
+    name: Build & Test the Application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Extract branch or tag name
+        run: |
+          REF=$(echo ${GITHUB_REF#refs/*/})
+          COMMIT_ID=${GITHUB_SHA}
+          if [[ "$REF" == "master" ]]; then
+            echo "ref=latest" >> $GITHUB_ENV
+          else
+            echo "ref=$REF" >> $GITHUB_ENV
+          fi
+          echo "commit_id=$COMMIT_ID" >> $GITHUB_ENV
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            schmiddim/java-mem-thief:${{ env.ref }}
+            schmiddim/java-mem-thief:${{ env.commit_id }}
+          platforms: linux/amd64, linux/arm64
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache

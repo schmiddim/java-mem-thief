@@ -1,0 +1,17 @@
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+whitelistObjectNames: ["java.lang:*"]
+rules:
+  - pattern: "java.lang<type=Memory><HeapMemoryUsage>(.*)"
+    name: jvm_memory_bytes
+    labels:
+      area: heap
+    type: GAUGE
+  - pattern: "java.lang<type=GarbageCollector, name=(.*)><CollectionCount>"
+    name: jvm_gc_collection_count
+    labels:
+      gc_name: "$1"
+    type: COUNTER
+  - pattern: "java.lang<type=OperatingSystem><SystemCpuLoad>"
+    name: system_cpu_load
+    type: GAUGE
